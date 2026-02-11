@@ -1,0 +1,8 @@
+backend/target/
+storage/
+*.log
+.idea/
+.vscode/
+.DS_Store
+.env
+backend/.mvn/wrapper/maven-wrapper.jar

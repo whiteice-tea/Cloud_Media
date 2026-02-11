@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>控制台 - Cloud Media</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <div class="row" style="justify-content:space-between;align-items:center;">
+        <h2>Cloud Media 控制台</h2>
+        <div>
+          <span class="muted">当前用户：<b id="username"></b></span>
+          <button id="logoutBtn" class="secondary">退出</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <h3>上传视频（mp4）</h3>
+        <div class="row">
+          <input id="videoFile" type="file" accept=".mp4,video/mp4" />
+          <button id="uploadVideoBtn">上传视频</button>
+        </div>
+      </div>
+      <div class="card">
+        <h3>上传文档（pdf/doc/docx）</h3>
+        <div class="row">
+          <input id="docFile" type="file" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" />
+          <button id="uploadDocBtn">上传文档</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <h3>视频列表</h3>
+        <div id="videoList"></div>
+      </div>
+      <div class="card">
+        <h3>文档列表</h3>
+        <div id="docList"></div>
+      </div>
+    </div>
+    <div id="msg"></div>
+  </div>
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/dashboard.js"></script>
+</body>
+</html>

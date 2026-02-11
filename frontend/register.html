@@ -1,0 +1,29 @@
+﻿<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Register - Cloud Media</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="container">
+    <div class="card" style="max-width:560px;margin:0 auto;">
+      <h2>Register</h2>
+      <form id="registerForm">
+        <div class="row">
+          <input id="regUsername" type="text" placeholder="Username" required minlength="3" maxlength="64" />
+          <input id="regPassword" type="password" placeholder="Password" required minlength="6" maxlength="64" />
+          <input id="regEmail" type="email" placeholder="Email (optional)" maxlength="128" />
+          <button type="submit">Register</button>
+        </div>
+      </form>
+      <p class="muted">Already registered? <a href="login.html">Go to login</a></p>
+      <div id="msg"></div>
+    </div>
+  </div>
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/register.js"></script>
+</body>
+</html>

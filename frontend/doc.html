@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>文档阅读 - Cloud Media</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="container media-container">
+    <div class="card media-card">
+      <div class="row" style="justify-content:space-between;align-items:center;">
+        <h2>文档阅读</h2>
+        <button id="backBtn" class="secondary">返回控制台</button>
+      </div>
+      <div class="resize-tools">
+        <button id="resetSizeBtn" class="secondary">恢复默认大小</button>
+      </div>
+      <div id="docWrap" class="resizable-box doc-box">
+        <iframe id="docFrame" class="doc-frame" title="pdf-viewer"></iframe>
+      </div>
+      <div id="msg"></div>
+    </div>
+  </div>
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/doc.js"></script>
+</body>
+</html>

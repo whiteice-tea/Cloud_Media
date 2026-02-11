@@ -1,0 +1,39 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: cloud-media-backend
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://127.0.0.1:3306/cloud_media?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true}
+    username: ${SPRING_DATASOURCE_USERNAME:root}
+    password: ${SPRING_DATASOURCE_PASSWORD:root}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  servlet:
+    multipart:
+      max-file-size: 500MB
+      max-request-size: 500MB
+
+mybatis-plus:
+  mapper-locations: classpath*:/mapper/**/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+
+jwt:
+  secret: ${JWT_SECRET:please-change-this-to-a-strong-32-plus-char-secret}
+  expire-seconds: ${JWT_EXPIRE_SECONDS:604800}
+
+storage:
+  root-path: ${STORAGE_ROOT_PATH:../storage}
+
+upload:
+  max-file-size: 524288000
+
+cors:
+  allowed-origins:
+    - "*"
+
+logging:
+  level:
+    root: info
+    com.cloudmedia: info
