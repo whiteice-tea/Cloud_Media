@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import com.cloudmedia.config.StorageProperties;
 import com.cloudmedia.mapper.MediaFileMapper;
@@ -52,8 +53,8 @@ public class MediaService {
         String originalName = file.getOriginalFilename() == null ? "unknown.mp4" : file.getOriginalFilename();
         String ext = FileTypeUtil.extractExt(originalName);
         String mimeType = file.getContentType() == null ? "" : file.getContentType().toLowerCase();
-        if (!FileTypeUtil.isSupportedVideoExt(ext) || (!mimeType.isBlank() && !mimeType.contains("video/mp4"))) {
-            throw new ApiException(ApiCode.UNSUPPORTED_FILE_TYPE, "only mp4 is supported");
+        if (!FileTypeUtil.isSupportedVideoExt(ext) || !FileTypeUtil.isSupportedVideoMime(mimeType)) {
+            throw new ApiException(ApiCode.UNSUPPORTED_FILE_TYPE, "supported video formats: mp4, webm, ogv, m4v, mov");
         }
         return saveUploadedFile(userId, file, TYPE_VIDEO, ext, originalName);
     }
@@ -87,12 +88,14 @@ public class MediaService {
         return items.stream().map(item -> toMediaItemVO(userId, item)).collect(Collectors.toList());
     }
 
+    @Transactional(rollbackFor = Exception.class)
     public void deleteOwnedMedia(Long userId, Long id) {
         MediaFile mediaFile = getOwnedMedia(userId, id);
 
-        mediaFileMapper.deleteById(id);
-        if (TYPE_VIDEO.equals(mediaFile.getMediaType())) {
-            videoProgressMapper.delete(new LambdaQueryWrapper<VideoProgress>().eq(VideoProgress::getVideoFileId, id));
+        videoProgressMapper.delete(new LambdaQueryWrapper<VideoProgress>().eq(VideoProgress::getVideoFileId, id));
+        int deleted = mediaFileMapper.deleteById(id);
+        if (deleted != 1) {
+            throw new ApiException(ApiCode.INTERNAL_ERROR, "failed to delete media");
         }
 
         Path root = Path.of(storageProperties.getRootPath()).toAbsolutePath().normalize();

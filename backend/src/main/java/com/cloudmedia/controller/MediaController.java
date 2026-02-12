@@ -24,6 +24,7 @@ import com.cloudmedia.service.WordConvertService;
 import com.cloudmedia.util.ApiCode;
 import com.cloudmedia.util.ApiException;
 import com.cloudmedia.util.ApiResponse;
+import com.cloudmedia.util.FileTypeUtil;
 import com.cloudmedia.util.UserContext;
 
 @RestController
@@ -103,7 +104,11 @@ public class MediaController {
 
         long contentLength = end - start + 1;
         response.setHeader("Accept-Ranges", "bytes");
-        response.setHeader("Content-Type", "video/mp4");
+        String mimeType = mediaFile.getMimeType();
+        if (!StringUtils.hasText(mimeType) || "application/octet-stream".equalsIgnoreCase(mimeType)) {
+            mimeType = FileTypeUtil.guessMimeByExt(mediaFile.getExt());
+        }
+        response.setHeader("Content-Type", mimeType);
         response.setHeader("Content-Length", String.valueOf(contentLength));
         if (partial) {
             response.setStatus(HttpServletResponse.SC_PARTIAL_CONTENT);
