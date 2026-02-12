@@ -61,8 +61,8 @@ button.secondary {
 }
 
 .list-item {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   border-bottom: 1px solid #e5e7eb;
   padding: 10px 0;
@@ -71,6 +71,24 @@ button.secondary {
 
 .list-item:last-child {
   border-bottom: 0;
+}
+
+.item-main {
+  width: auto;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.item-title {
+  display: block;
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.item-actions {
+  flex-shrink: 0;
 }
 
 .muted {

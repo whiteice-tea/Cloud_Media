@@ -41,14 +41,25 @@ function renderList(containerId, items, kind) {
     const absoluteUrl = toApiAbsoluteUrl(mediaUrl);
     return `
       <div class="list-item">
-        <div>
-          <a href="${kind}.html?id=${it.id}&u=${encodeURIComponent(absoluteUrl)}">${it.originalName}</a>
+        <div class="item-main">
+          <a class="item-title" title="${escapeHtml(it.originalName)}" href="${kind}.html?id=${it.id}&u=${encodeURIComponent(absoluteUrl)}">${escapeHtml(it.originalName)}</a>
           <div class="muted">${bytesToText(it.sizeBytes)} · ${it.createdAt}</div>
         </div>
-        <button class="danger" data-id="${it.id}" data-kind="${kind}">Delete</button>
+        <div class="item-actions">
+          <button class="danger" data-id="${it.id}" data-kind="${kind}">Delete</button>
+        </div>
       </div>
     `;
   }).join("");
+}
+
+function escapeHtml(str) {
+  return String(str)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll("\"", "&quot;")
+    .replaceAll("'", "&#39;");
 }
 
 document.addEventListener("click", async (e) => {
