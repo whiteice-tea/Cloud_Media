@@ -39,6 +39,10 @@ window.toApiAbsoluteUrl = toApiAbsoluteUrl;
 async function request(path, options = {}) {
   const headers = new Headers(options.headers || {});
   headers.set("X-Guest-Id", getOrCreateGuestId());
+  const adminToken = localStorage.getItem("adminToken");
+  if (adminToken) {
+    headers.set("X-Admin-Token", adminToken);
+  }
 
   const resp = await fetch(`${API_BASE}${path}`, {
     ...options,

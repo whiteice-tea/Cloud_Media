@@ -6,13 +6,3 @@ storage/
 .DS_Store
 .env
 backend/.mvn/wrapper/maven-wrapper.jar
-* text=auto
-*.sh text eol=lf
-*.yml text eol=lf
-*.yaml text eol=lf
-*.md text eol=lf
-*.java text eol=lf
-*.html text eol=lf
-*.css text eol=lf
-*.js text eol=lf
-
