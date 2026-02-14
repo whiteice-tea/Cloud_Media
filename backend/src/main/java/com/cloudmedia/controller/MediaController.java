@@ -17,9 +17,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import com.cloudmedia.config.AppProperties;
 import com.cloudmedia.model.entity.MediaFile;
 import com.cloudmedia.model.vo.MediaItemVO;
+import com.cloudmedia.service.GuestSessionService;
 import com.cloudmedia.service.MediaService;
+import com.cloudmedia.service.SignedUrlService;
 import com.cloudmedia.service.WordConvertService;
 import com.cloudmedia.util.ApiCode;
 import com.cloudmedia.util.ApiException;
@@ -35,43 +38,45 @@ public class MediaController {
 
     private final MediaService mediaService;
     private final WordConvertService wordConvertService;
+    private final AppProperties appProperties;
+    private final GuestSessionService guestSessionService;
+    private final SignedUrlService signedUrlService;
 
-    public MediaController(MediaService mediaService, WordConvertService wordConvertService) {
+    public MediaController(MediaService mediaService, WordConvertService wordConvertService, AppProperties appProperties,
+                           GuestSessionService guestSessionService, SignedUrlService signedUrlService) {
         this.mediaService = mediaService;
         this.wordConvertService = wordConvertService;
+        this.appProperties = appProperties;
+        this.guestSessionService = guestSessionService;
+        this.signedUrlService = signedUrlService;
     }
 
     @PostMapping("/upload/video")
-    public ApiResponse<Map<String, Long>> uploadVideo(@RequestParam("file") MultipartFile file) {
-        Long userId = requireUserId();
-        Long id = mediaService.uploadVideo(userId, file);
+    public ApiResponse<Map<String, Long>> uploadVideo(@RequestParam("file") MultipartFile file, HttpServletRequest request) {
+        Long id = mediaService.uploadVideo(resolveCallerUserId(request), file);
         return ApiResponse.ok(Map.of("id", id));
     }
 
     @PostMapping("/upload/doc")
-    public ApiResponse<Map<String, Long>> uploadDoc(@RequestParam("file") MultipartFile file) {
-        Long userId = requireUserId();
-        Long id = mediaService.uploadDoc(userId, file);
+    public ApiResponse<Map<String, Long>> uploadDoc(@RequestParam("file") MultipartFile file, HttpServletRequest request) {
+        Long id = mediaService.uploadDoc(resolveCallerUserId(request), file);
         return ApiResponse.ok(Map.of("id", id));
     }
 
     @GetMapping("/list")
-    public ApiResponse<List<MediaItemVO>> list(@RequestParam("type") String type) {
-        Long userId = requireUserId();
-        return ApiResponse.ok(mediaService.listByType(userId, type));
+    public ApiResponse<List<MediaItemVO>> list(@RequestParam("type") String type, HttpServletRequest request) {
+        return ApiResponse.ok(mediaService.listByType(resolveCallerUserId(request), type));
     }
 
     @DeleteMapping("/{id}")
-    public ApiResponse<Void> delete(@PathVariable("id") Long id) {
-        Long userId = requireUserId();
-        mediaService.deleteOwnedMedia(userId, id);
+    public ApiResponse<Void> delete(@PathVariable("id") Long id, HttpServletRequest request) {
+        mediaService.deleteOwnedMedia(resolveCallerUserId(request), id);
         return ApiResponse.ok();
     }
 
     @GetMapping("/stream/video/{id}")
     public void streamVideo(@PathVariable("id") Long id, HttpServletRequest request, HttpServletResponse response) throws IOException {
-        Long userId = requireUserId();
-        MediaFile mediaFile = mediaService.getOwnedMedia(userId, id);
+        MediaFile mediaFile = mediaService.getOwnedMedia(resolveMediaOwnerForRead(request), id);
         if (!MediaService.TYPE_VIDEO.equals(mediaFile.getMediaType())) {
             throw new ApiException(ApiCode.BAD_REQUEST, "media is not video");
         }
@@ -134,9 +139,8 @@ public class MediaController {
     }
 
     @GetMapping("/view/doc/{id}")
-    public void viewDoc(@PathVariable("id") Long id, HttpServletResponse response) throws IOException {
-        Long userId = requireUserId();
-        MediaFile mediaFile = mediaService.getOwnedMedia(userId, id);
+    public void viewDoc(@PathVariable("id") Long id, HttpServletRequest request, HttpServletResponse response) throws IOException {
+        MediaFile mediaFile = mediaService.getOwnedMedia(resolveMediaOwnerForRead(request), id);
         if (!MediaService.TYPE_DOC.equals(mediaFile.getMediaType())) {
             throw new ApiException(ApiCode.BAD_REQUEST, "media is not doc");
         }
@@ -158,11 +162,32 @@ public class MediaController {
         response.flushBuffer();
     }
 
-    private Long requireUserId() {
+    private Long resolveCallerUserId(HttpServletRequest request) {
+        if (appProperties.isPublicMode()) {
+            return guestSessionService.requireGuestUserId(request);
+        }
         Long userId = UserContext.getUserId();
         if (userId == null) {
             throw new ApiException(ApiCode.UNAUTHORIZED, "unauthorized");
         }
         return userId;
+    }
+
+    private Long resolveMediaOwnerForRead(HttpServletRequest request) {
+        if (!appProperties.isPublicMode()) {
+            Long userId = UserContext.getUserId();
+            if (userId == null) {
+                throw new ApiException(ApiCode.UNAUTHORIZED, "unauthorized");
+            }
+            return userId;
+        }
+
+        String accessToken = request.getParameter("accessToken");
+        Long ownerUserId = signedUrlService.verifyAccessToken(accessToken, request);
+        if (ownerUserId != null) {
+            guestSessionService.touch(ownerUserId);
+            return ownerUserId;
+        }
+        return guestSessionService.requireGuestUserId(request);
     }
 }

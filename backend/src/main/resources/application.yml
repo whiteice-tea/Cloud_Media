@@ -1,4 +1,4 @@
-server:
+﻿server:
   port: 8080
 
 spring:
@@ -32,6 +32,14 @@ upload:
 cors:
   allowed-origins:
     - "*"
+
+app:
+  mode: ${APP_MODE:PUBLIC}
+  guest-ttl-minutes: ${GUEST_TTL_MINUTES:20}
+  guest-cleanup-interval-ms: ${GUEST_CLEANUP_INTERVAL_MS:60000}
+
+admin:
+  token: ${ADMIN_TOKEN:change-me-admin-token-at-least-32-chars}
 
 logging:
   level:

@@ -1,8 +1,4 @@
-﻿if (!isLoggedIn()) {
-  location.href = "login.html";
-}
-
-const qs = new URLSearchParams(location.search);
+﻿const qs = new URLSearchParams(location.search);
 const id = qs.get("id");
 const signedUrl = qs.get("u");
 const msg = document.getElementById("msg");
@@ -13,15 +9,15 @@ const backBtn = document.getElementById("backBtn");
 const VIDEO_SIZE_KEY = "video_player_size_v1";
 
 if (!id) {
-  msg.textContent = "missing video id";
+  msg.textContent = t("video.msg.missingId", "Missing video id");
 } else {
   init().catch((err) => {
-    msg.textContent = err.message || "load failed";
+    msg.textContent = err.message || t("video.msg.loadFailed", "Load failed");
   });
 }
 
 backBtn.addEventListener("click", () => {
-  location.href = "dashboard.html";
+  location.href = "index.html";
 });
 
 setupResizableBox();

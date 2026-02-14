@@ -23,11 +23,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private static final List<String> PUBLIC_PATTERNS = List.of("/api/auth/register", "/api/auth/login");
 
+    private final AppProperties appProperties;
     private final JwtUtil jwtUtil;
     private final SignedUrlService signedUrlService;
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
 
-    public JwtAuthenticationFilter(JwtUtil jwtUtil, SignedUrlService signedUrlService) {
+    public JwtAuthenticationFilter(AppProperties appProperties, JwtUtil jwtUtil, SignedUrlService signedUrlService) {
+        this.appProperties = appProperties;
         this.jwtUtil = jwtUtil;
         this.signedUrlService = signedUrlService;
     }
@@ -36,6 +38,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
         try {
+            if (appProperties.isPublicMode()) {
+                filterChain.doFilter(request, response);
+                return;
+            }
             String token = extractBearerToken(request);
             if (StringUtils.hasText(token)) {
                 JwtUserClaims claims = jwtUtil.parseToken(token);

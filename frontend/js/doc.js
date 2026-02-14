@@ -1,28 +1,25 @@
-﻿if (!isLoggedIn()) {
-  location.href = "login.html";
-}
-
-const qs = new URLSearchParams(location.search);
+﻿const qs = new URLSearchParams(location.search);
 const id = qs.get("id");
 const signedUrl = qs.get("u");
 const frame = document.getElementById("docFrame");
 const docWrap = document.getElementById("docWrap");
 const resetSizeBtn = document.getElementById("resetSizeBtn");
 const msg = document.getElementById("msg");
+const backBtn = document.getElementById("backBtn");
 const DOC_SIZE_KEY = "doc_viewer_size_v1";
 
 setupResizableBox();
 
 if (!id) {
-  msg.textContent = "missing doc id";
+  msg.textContent = t("doc.msg.missingId", "Missing doc id");
 } else {
   const rawUrl = signedUrl || `/api/media/view/doc/${id}`;
   const fileUrl = toApiAbsoluteUrl(rawUrl);
   frame.src = `vendor/pdfjs/web/viewer.html?file=${encodeURIComponent(fileUrl)}`;
 }
 
-document.getElementById("backBtn").addEventListener("click", () => {
-  location.href = "dashboard.html";
+backBtn.addEventListener("click", () => {
+  location.href = "index.html";
 });
 
 function setupResizableBox() {

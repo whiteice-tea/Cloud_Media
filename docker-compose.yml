@@ -4,11 +4,11 @@ services:
     container_name: cloud-media-mysql
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: root
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: cloud_media
-      TZ: Asia/Shanghai
-    ports:
-      - "3306:3306"
+      TZ: ${TZ:-Asia/Shanghai}
+    expose:
+      - "3306"
     volumes:
       - mysql_data:/var/lib/mysql
       - ./backend/src/main/resources/db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
@@ -24,13 +24,16 @@ services:
     environment:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/cloud_media?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
       SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: root
-      JWT_SECRET: please-change-this-to-a-strong-32-plus-char-secret
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
       STORAGE_ROOT_PATH: /data/storage
+      APP_MODE: ${APP_MODE:-PUBLIC}
+      ADMIN_TOKEN: ${ADMIN_TOKEN}
+      TZ: ${TZ:-Asia/Shanghai}
+    expose:
+      - "8080"
     volumes:
       - ./storage:/data/storage
-    ports:
-      - "8080:8080"
 
   nginx:
     image: nginx:1.27-alpine

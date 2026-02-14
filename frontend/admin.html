@@ -1,0 +1,61 @@
+﻿<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin - Cloud Media Tools</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <div class="row" style="justify-content: space-between; align-items: center;">
+        <h2 style="margin: 0;">管理控制台</h2>
+        <a href="index.html"><button class="secondary">返回首页</button></a>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>管理员入口</h2>
+      <div class="row">
+        <input id="adminTokenInput" type="password" placeholder="输入 X-Admin-Token" />
+        <button id="saveAdminTokenBtn">保存 Token</button>
+        <button id="clearAdminTokenBtn" class="secondary">清除 Token</button>
+      </div>
+      <div id="tokenMsg" class="muted"></div>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <h3>上传视频（mp4/m4v/webm/ogv/mov）</h3>
+        <div class="row">
+          <input id="videoFile" type="file" accept=".mp4,.m4v,.webm,.ogv,.mov,video/mp4,video/webm,video/ogg,video/quicktime" />
+          <button id="uploadVideoBtn">上传视频</button>
+        </div>
+      </div>
+      <div class="card">
+        <h3>上传文档（pdf/doc/docx）</h3>
+        <div class="row">
+          <input id="docFile" type="file" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" />
+          <button id="uploadDocBtn">上传文档</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <h3>视频列表</h3>
+        <div id="videoList"></div>
+      </div>
+      <div class="card">
+        <h3>文档列表</h3>
+        <div id="docList"></div>
+      </div>
+    </div>
+    <div id="msg"></div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>

@@ -54,7 +54,7 @@ public class MediaService {
         String ext = FileTypeUtil.extractExt(originalName);
         String mimeType = file.getContentType() == null ? "" : file.getContentType().toLowerCase();
         if (!FileTypeUtil.isSupportedVideoExt(ext) || !FileTypeUtil.isSupportedVideoMime(mimeType)) {
-            throw new ApiException(ApiCode.UNSUPPORTED_FILE_TYPE, "supported video formats: mp4, webm, ogv, m4v, mov");
+            throw new ApiException(ApiCode.UNSUPPORTED_FILE_TYPE, "supported video formats: mp4, m4v, webm, ogv, mov");
         }
         return saveUploadedFile(userId, file, TYPE_VIDEO, ext, originalName);
     }
@@ -78,9 +78,7 @@ public class MediaService {
     }
 
     public List<MediaItemVO> listByType(Long userId, String type) {
-        if (!TYPE_VIDEO.equals(type) && !TYPE_DOC.equals(type)) {
-            throw new ApiException(ApiCode.BAD_REQUEST, "invalid type");
-        }
+        validateType(type);
         List<MediaFile> items = mediaFileMapper.selectList(new LambdaQueryWrapper<MediaFile>()
                 .eq(MediaFile::getUserId, userId)
                 .eq(MediaFile::getMediaType, type)
@@ -90,28 +88,32 @@ public class MediaService {
 
     @Transactional(rollbackFor = Exception.class)
     public void deleteOwnedMedia(Long userId, Long id) {
-        MediaFile mediaFile = getOwnedMedia(userId, id);
+        deleteByEntity(getOwnedMedia(userId, id));
+    }
 
-        videoProgressMapper.delete(new LambdaQueryWrapper<VideoProgress>().eq(VideoProgress::getVideoFileId, id));
-        int deleted = mediaFileMapper.deleteById(id);
-        if (deleted != 1) {
-            throw new ApiException(ApiCode.INTERNAL_ERROR, "failed to delete media");
+    @Transactional(rollbackFor = Exception.class)
+    public void deleteAllByUserId(Long userId) {
+        List<MediaFile> files = mediaFileMapper.selectList(new LambdaQueryWrapper<MediaFile>()
+                .eq(MediaFile::getUserId, userId));
+        for (MediaFile file : files) {
+            deleteByEntity(file);
         }
-
-        Path root = Path.of(storageProperties.getRootPath()).toAbsolutePath().normalize();
-        deleteIfExists(root, mediaFile.getStorageRelPath());
-        if (mediaFile.getDerivedPdfRelPath() != null && !mediaFile.getDerivedPdfRelPath().isBlank()) {
-            deleteIfExists(root, mediaFile.getDerivedPdfRelPath());
-        }
+        videoProgressMapper.delete(new LambdaQueryWrapper<VideoProgress>()
+                .eq(VideoProgress::getUserId, userId));
     }
 
     public MediaFile getOwnedMedia(Long userId, Long id) {
+        MediaFile mediaFile = getMediaById(id);
+        if (!mediaFile.getUserId().equals(userId)) {
+            throw new ApiException(ApiCode.FORBIDDEN, "no permission");
+        }
+        return mediaFile;
+    }
+
+    public MediaFile getMediaById(Long id) {
         MediaFile mediaFile = mediaFileMapper.selectById(id);
         if (mediaFile == null) {
             throw new ApiException(ApiCode.NOT_FOUND, "media not found");
-        }
-        if (!mediaFile.getUserId().equals(userId)) {
-            throw new ApiException(ApiCode.FORBIDDEN, "no permission");
         }
         return mediaFile;
     }
@@ -144,6 +146,12 @@ public class MediaService {
                 "videos", root.resolve("videos").toString(),
                 "docs", root.resolve("docs").toString(),
                 "tmp", root.resolve("tmp").toString());
+    }
+
+    private void validateType(String type) {
+        if (!TYPE_VIDEO.equals(type) && !TYPE_DOC.equals(type)) {
+            throw new ApiException(ApiCode.BAD_REQUEST, "invalid type");
+        }
     }
 
     private Long saveUploadedFile(Long userId, MultipartFile file, String mediaType, String ext, String originalName) {
@@ -196,6 +204,19 @@ public class MediaService {
             vo.setViewUrl(null);
         }
         return vo;
+    }
+
+    private void deleteByEntity(MediaFile mediaFile) {
+        videoProgressMapper.delete(new LambdaQueryWrapper<VideoProgress>().eq(VideoProgress::getVideoFileId, mediaFile.getId()));
+        int deleted = mediaFileMapper.deleteById(mediaFile.getId());
+        if (deleted != 1) {
+            throw new ApiException(ApiCode.INTERNAL_ERROR, "failed to delete media");
+        }
+        Path root = Path.of(storageProperties.getRootPath()).toAbsolutePath().normalize();
+        deleteIfExists(root, mediaFile.getStorageRelPath());
+        if (mediaFile.getDerivedPdfRelPath() != null && !mediaFile.getDerivedPdfRelPath().isBlank()) {
+            deleteIfExists(root, mediaFile.getDerivedPdfRelPath());
+        }
     }
 
     private void deleteIfExists(Path root, String relPath) {

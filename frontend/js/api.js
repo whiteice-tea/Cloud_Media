@@ -1,18 +1,27 @@
-function resolveApiBase() {
+﻿function resolveApiBase() {
   if (window.API_BASE) return window.API_BASE;
-
-  if (location.protocol === "file:") {
-    return "http://localhost:8080/api";
-  }
+  if (location.protocol === "file:") return "http://localhost:8080/api";
 
   const host = location.hostname || "localhost";
   const port = location.port;
-
   if (!port || port === "80" || port === "443") {
     return `${location.protocol}//${host}/api`;
   }
-
   return `${location.protocol}//${host}:8080/api`;
+}
+
+function getOrCreateGuestId() {
+  const key = "guestId";
+  let guestId = localStorage.getItem(key);
+  if (guestId) return guestId;
+
+  if (window.crypto && typeof window.crypto.randomUUID === "function") {
+    guestId = window.crypto.randomUUID().replaceAll("-", "");
+  } else {
+    guestId = `${Date.now()}_${Math.random().toString(36).slice(2, 14)}`;
+  }
+  localStorage.setItem(key, guestId);
+  return guestId;
 }
 
 const API_BASE = resolveApiBase();
@@ -28,11 +37,8 @@ function toApiAbsoluteUrl(pathOrUrl) {
 window.toApiAbsoluteUrl = toApiAbsoluteUrl;
 
 async function request(path, options = {}) {
-  const token = localStorage.getItem("token");
   const headers = new Headers(options.headers || {});
-  if (token) {
-    headers.set("Authorization", `Bearer ${token}`);
-  }
+  headers.set("X-Guest-Id", getOrCreateGuestId());
 
   const resp = await fetch(`${API_BASE}${path}`, {
     ...options,
@@ -40,19 +46,23 @@ async function request(path, options = {}) {
   });
 
   const contentType = resp.headers.get("content-type") || "";
-  if (!contentType.includes("application/json")) {
-    return resp;
+  if (contentType.includes("application/json")) {
+    const body = await resp.json();
+    if (!resp.ok || body.code !== 0) {
+      const err = new Error(body.message || `request failed (${resp.status})`);
+      err.code = body.code;
+      err.httpStatus = resp.status;
+      throw err;
+    }
+    return body.data;
   }
 
-  const body = await resp.json();
-  if (body.code === 401) {
-    localStorage.removeItem("token");
-    localStorage.removeItem("username");
-    location.href = "login.html";
-    throw new Error("unauthorized");
+  if (!resp.ok) {
+    const errText = await resp.text();
+    const err = new Error(errText || `request failed (${resp.status})`);
+    err.httpStatus = resp.status;
+    throw err;
   }
-  if (body.code !== 0) {
-    throw new Error(body.message || "request failed");
-  }
-  return body.data;
+
+  return resp;
 }

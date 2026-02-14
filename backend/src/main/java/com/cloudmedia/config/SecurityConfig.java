@@ -28,13 +28,18 @@ import com.cloudmedia.util.ApiResponse;
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final AdminTokenFilter adminTokenFilter;
     private final ObjectMapper objectMapper;
     private final CorsProperties corsProperties;
+    private final AppProperties appProperties;
 
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter, ObjectMapper objectMapper, CorsProperties corsProperties) {
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter, AdminTokenFilter adminTokenFilter,
+                          ObjectMapper objectMapper, CorsProperties corsProperties, AppProperties appProperties) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+        this.adminTokenFilter = adminTokenFilter;
         this.objectMapper = objectMapper;
         this.corsProperties = corsProperties;
+        this.appProperties = appProperties;
     }
 
     @Bean
@@ -50,13 +55,22 @@ public class SecurityConfig {
                         .contentSecurityPolicy(csp -> csp.policyDirectives(
                                 "frame-ancestors 'self' http://127.0.0.1:5500 http://localhost:5500 http://127.0.0.1:8081 http://localhost:8081"
                         )))
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
-                        .requestMatchers("/api/media/stream/video/**", "/api/media/view/doc/**").permitAll()
-                        .anyRequest().authenticated())
+                .authorizeHttpRequests(auth -> {
+                    auth.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll();
+                    if (appProperties.isPublicMode()) {
+                        auth.requestMatchers("/**").permitAll();
+                    } else {
+                        auth.requestMatchers("/api/auth/register", "/api/auth/login").permitAll();
+                        auth.requestMatchers("/api/media/stream/video/**", "/api/media/view/doc/**").permitAll();
+                        auth.anyRequest().authenticated();
+                    }
+                })
                 .exceptionHandling(ex -> ex.authenticationEntryPoint(authenticationEntryPoint()))
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(adminTokenFilter, UsernamePasswordAuthenticationFilter.class);
+
+        if (!appProperties.isPublicMode()) {
+            http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+        }
         return http.build();
     }
 

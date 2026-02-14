@@ -14,6 +14,69 @@ body {
   margin: 24px auto;
 }
 
+.tool-layout {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.tool-sidebar {
+  position: sticky;
+  top: 16px;
+}
+
+.sidebar-title {
+  margin-bottom: 8px;
+}
+
+.tool-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.lang-switch {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.lang-btn {
+  background: #e5e7eb;
+  color: #111827;
+  padding: 6px 10px;
+}
+
+.lang-btn.active {
+  background: #2563eb;
+  color: #fff;
+}
+
+.menu-btn {
+  background: #eef2ff;
+  color: #1e3a8a;
+  text-align: left;
+}
+
+.menu-btn.active {
+  background: #2563eb;
+  color: #fff;
+}
+
+.tool-main {
+  min-width: 0;
+}
+
+.tool-panel {
+  display: none;
+}
+
+.tool-panel.active {
+  display: block;
+}
+
 .card {
   background: #fff;
   border-radius: 12px;
@@ -58,6 +121,7 @@ button.danger {
 
 button.secondary {
   background: #4b5563;
+  margin-bottom: 10px;
 }
 
 .list-item {
@@ -192,6 +256,23 @@ iframe.doc-frame {
 }
 
 @media (max-width: 900px) {
+  .tool-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .tool-sidebar {
+    position: static;
+  }
+
+  .tool-menu {
+    flex-direction: row;
+    overflow-x: auto;
+  }
+
+  .menu-btn {
+    white-space: nowrap;
+  }
+
   .two-col {
     grid-template-columns: 1fr;
   }

@@ -3,16 +3,86 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Cloud Media Platform</title>
+  <title data-i18n="index.title">Cloud Media Tools</title>
   <link rel="stylesheet" href="css/style.css" />
 </head>
-<body class="full-height center">
-  <div class="card" style="width:min(520px,92%);text-align:center;">
-    <h1>Cloud Media Platform</h1>
-    <p class="muted">Please register first, then login.</p>
-    <a id="goRegister" href="register.html"><button>Go to Register</button></a>
+<body>
+  <div class="container tool-layout">
+    <aside class="tool-sidebar card">
+      <div class="lang-switch">
+        <button class="lang-btn" data-lang-switch="zh" data-i18n="lang.zh">中文</button>
+        <button class="lang-btn" data-lang-switch="en" data-i18n="lang.en">English</button>
+      </div>
+      <h2 class="sidebar-title">Cloud Media</h2>
+      <p class="muted" data-i18n="index.group">工具分区</p>
+      <div class="tool-menu">
+        <button class="menu-btn active" data-target="panelVideo" data-i18n="index.menu.video">视频工具</button>
+        <button class="menu-btn" data-target="panelDoc" data-i18n="index.menu.doc">文档工具</button>
+        <button class="menu-btn" data-target="panelMore" data-i18n="index.menu.more">更多功能（预留）</button>
+      </div>
+    </aside>
+
+    <main class="tool-main">
+      <div class="card">
+        <h1>Cloud Media Tools</h1>
+        <p class="muted" data-i18n="index.hero.desc">无需登录，直接上传并使用视频播放/文档阅读。你的数据会在无操作 20 分钟后自动清理。</p>
+      </div>
+
+      <section id="panelVideo" class="tool-panel active">
+        <div class="card">
+          <div class="row" style="justify-content:space-between;align-items:center;">
+            <h3 data-i18n="index.video.title">视频工具</h3>
+            <button id="openVideoToolBtn" class="secondary" data-i18n="index.video.openRecent">打开最近视频</button>
+          </div>
+          <div class="row">
+            <input id="videoFile" type="file" accept=".mp4,.m4v,.webm,.ogv,.mov,video/mp4,video/webm,video/ogg,video/quicktime" data-i18n-placeholder="index.input.video" placeholder="选择视频文件" />
+            <button id="uploadVideoBtn" data-i18n="index.video.upload">上传视频</button>
+          </div>
+        </div>
+        <div class="card">
+          <h3 data-i18n="index.video.list">我的视频</h3>
+          <div id="videoList"></div>
+        </div>
+      </section>
+
+      <section id="panelDoc" class="tool-panel">
+        <div class="card">
+          <div class="row" style="justify-content:space-between;align-items:center;">
+            <h3 data-i18n="index.doc.title">文档工具</h3>
+            <button id="openDocToolBtn" class="secondary" data-i18n="index.doc.openRecent">打开最近文档</button>
+          </div>
+          <div class="row">
+            <input id="docFile" type="file" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" data-i18n-placeholder="index.input.doc" placeholder="选择文档文件" />
+            <button id="uploadDocBtn" data-i18n="index.doc.upload">上传文档</button>
+          </div>
+        </div>
+        <div class="card">
+          <h3 data-i18n="index.doc.list">我的文档</h3>
+          <div id="docList"></div>
+        </div>
+      </section>
+
+      <section id="panelMore" class="tool-panel">
+        <div class="card">
+          <h3 data-i18n="index.more.title">更多功能（预留）</h3>
+          <p class="muted" data-i18n="index.more.desc">后续可在这里加入音频处理、格式批量转换、字幕工具等模块。</p>
+        </div>
+      </section>
+
+      <div id="msg"></div>
+
+      <div class="card">
+        <p class="muted">
+          <a href="about.html" data-i18n="index.footer.about">关于</a> |
+          <a href="contact.html" data-i18n="index.footer.contact">联系</a> |
+          <a href="privacy.html" data-i18n="index.footer.privacy">隐私</a>
+        </p>
+      </div>
+    </main>
   </div>
-  <script src="js/auth.js"></script>
+
+  <script src="js/i18n.js"></script>
+  <script src="js/api.js"></script>
   <script src="js/index.js"></script>
 </body>
 </html>
