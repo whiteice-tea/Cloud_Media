@@ -12,11 +12,11 @@ public class VideoProgress {
     @TableId(type = IdType.AUTO)
     private Long id;
 
-    @TableField("user_id")
-    private Long userId;
+    @TableField("guest_id")
+    private String guestId;
 
     @TableField("video_file_id")
-    private Long videoFileId;
+    private String videoFileId;
 
     @TableField("progress_seconds")
     private Integer progressSeconds;
@@ -32,19 +32,19 @@ public class VideoProgress {
         this.id = id;
     }
 
-    public Long getUserId() {
-        return userId;
+    public String getGuestId() {
+        return guestId;
     }
 
-    public void setUserId(Long userId) {
-        this.userId = userId;
+    public void setGuestId(String guestId) {
+        this.guestId = guestId;
     }
 
-    public Long getVideoFileId() {
+    public String getVideoFileId() {
         return videoFileId;
     }
 
-    public void setVideoFileId(Long videoFileId) {
+    public void setVideoFileId(String videoFileId) {
         this.videoFileId = videoFileId;
     }
 

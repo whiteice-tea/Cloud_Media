@@ -1,86 +1,90 @@
-# Cloud Media (Local-First Hardened Setup)
+# Cloud Media Temporary Upload Site
 
-本项目已按“本地开发优先”完成上线前硬化，目标是：
-- `docker compose --env-file .env up -d --build` 可直接启动
-- 敏感配置全部来自 `.env` / 系统环境变量
-- 去掉弱默认值（密码、JWT、Admin Token）
+Guest users can upload video/doc files without login.  
+Each file has a hard TTL (default 20 minutes) and is cleaned from both storage and database when expired.
 
-## 1. Sensitive Keys Where To Set
+## 1. Strong secrets (must set in project root `.env`)
 
-在项目根目录创建 `.env`（不要提交）：
+Create `.env` beside `docker-compose.yml` (do not commit it):
 
 ```env
-MYSQL_ROOT_PASSWORD=YOUR_STRONG_MYSQL_ROOT_PASSWORD
+MYSQL_ROOT_PASSWORD=CHANGE_ME_TO_A_STRONG_PASSWORD_MIN_16
 SPRING_DATASOURCE_USERNAME=root
-SPRING_DATASOURCE_PASSWORD=YOUR_STRONG_DB_PASSWORD
-JWT_SECRET=YOUR_STRONG_JWT_SECRET_MIN_32_CHARS
-ADMIN_TOKEN=YOUR_STRONG_ADMIN_TOKEN_MIN_32_CHARS
+SPRING_DATASOURCE_PASSWORD=CHANGE_ME_TO_A_STRONG_PASSWORD_MIN_16
+JWT_SECRET=CHANGE_ME_TO_A_RANDOM_SECRET_MIN_32
+ADMIN_TOKEN=CHANGE_ME_TO_A_RANDOM_TOKEN_MIN_32
+STORAGE_ROOT_PATH=/data/storage
 APP_MODE=PUBLIC
 CORS_ALLOWED_ORIGINS=http://localhost:80,http://127.0.0.1:80,http://localhost:5500,http://127.0.0.1:5500
 GUEST_TTL_MINUTES=20
 GUEST_CLEANUP_INTERVAL_MS=60000
+GUEST_MAX_FILES=10
+GUEST_MAX_TOTAL_SIZE_BYTES=1073741824
 TZ=Asia/Shanghai
 ```
 
-说明：
-- `MYSQL_ROOT_PASSWORD`：MySQL root 密码
-- `SPRING_DATASOURCE_PASSWORD`：后端连接 MySQL 密码（本地建议与 root 密码一致）
-- `JWT_SECRET`：JWT 签名密钥（>=32 位随机）
-- `ADMIN_TOKEN`：管理员写操作令牌（>=32 位随机）
+Rules:
+- `MYSQL_ROOT_PASSWORD`: strong password, at least 16 chars.
+- `SPRING_DATASOURCE_PASSWORD`: strong password, at least 16 chars.
+- `JWT_SECRET`: random secret, at least 32 chars.
+- `ADMIN_TOKEN`: random token, at least 32 chars.
+- Commit `.env.example`, never commit `.env`.
 
-`.env` 已被 `.gitignore` 忽略；可提交模板是 `.env.example`。
+## 2. Security and behavior
 
-## 2. One-Click Local Start (3 commands)
+- Guest identity:
+  - Header required: `X-Guest-Id`
+  - Allowed format: UUID or ULID
+  - Missing/invalid header returns `400`
+- File whitelist:
+  - Extensions: `.mp4 .m4v .pdf .doc .docx`
+  - MIME: `video/*`, `application/pdf`, `application/msword`,
+    `application/vnd.openxmlformats-officedocument.wordprocessingml.document`
+- Upload limits:
+  - Backend multipart limit: `500MB`
+  - Nginx: `client_max_body_size 500m`
+- Rate limit:
+  - Nginx upload endpoint limit per IP: `1r/s`, burst `3`
+  - Exceeded requests return `429`
+- Guest quota (backend):
+  - Max active files per guest: `GUEST_MAX_FILES` (default `10`)
+  - Max active bytes per guest: `GUEST_MAX_TOTAL_SIZE_BYTES` (default `1GB`)
+  - Quota exceeded returns `429`
+- TTL:
+  - Every file stores `created_at`, `expires_at`, `status`
+  - Read/list only returns active and unexpired files
+  - Expired file access returns `410`
+  - Scheduled cleanup removes expired files from disk and marks DB rows `DELETED`
 
-```powershell
-cd E:\network\cloud-media
-copy .env.example .env   # 首次执行；然后手动替换为强密码/密钥
-docker compose --env-file .env up -d --build
-```
-
-## 3. Validation
-
-### 3.1 Check compose interpolation
+## 3. Start locally
 
 ```powershell
 docker compose --env-file .env config
+docker compose --env-file .env up -d --build
 ```
 
-### 3.2 Check containers / logs
+If Docker is not running, start Docker Desktop first.
 
-```powershell
-docker ps
-docker compose --env-file .env logs -f mysql
-docker compose --env-file .env logs -f backend
-```
+## 4. API summary
 
-### 3.3 Smoke API
+- `POST /api/media/upload/video`
+- `POST /api/media/upload/doc`
+- `POST /api/media/upload` (`type=VIDEO|DOC`)
+- `GET /api/media/list?type=VIDEO|DOC`
+- `GET /api/media/stream/video/{id}`
+- `GET /api/media/view/doc/{id}`
+- `DELETE /api/media/{id}`
+- `GET /api/video/progress/{videoId}`
+- `POST /api/video/progress/{videoId}`
 
-```powershell
-curl.exe -i "http://127.0.0.1/api/media/list?type=VIDEO" -H "X-Guest-Id: demo_guest_123456"
-```
+All guest endpoints require `X-Guest-Id`.
 
-## 4. Hardening Done
+## 5. Manual acceptance checklist
 
-- `docker-compose.yml`
-  - MySQL 使用 `${MYSQL_ROOT_PASSWORD}`
-  - MySQL 增加 `healthcheck`
-  - backend `depends_on.mysql.condition=service_healthy`
-  - backend 密钥类配置来自 `.env`：`SPRING_DATASOURCE_PASSWORD` / `JWT_SECRET` / `ADMIN_TOKEN`
-  - 加入 `CORS_ALLOWED_ORIGINS`、访客过期参数
-- `backend/src/main/resources/application.yml`
-  - 移除敏感弱默认值：`SPRING_DATASOURCE_PASSWORD`、`JWT_SECRET`、`ADMIN_TOKEN`
-  - CORS 默认改为 localhost 白名单，不再 `*`
-- `nginx.conf`
-  - `client_max_body_size 500m;`（避免大文件 413）
-- `.env.example`
-  - 补齐所有必要键（无真实 secret）
-- `.gitignore` / `.gitattributes`
-  - `.env` 忽略
-  - 行尾规则放到 `.gitattributes`
-
-## 5. Known Limitation
-
-- `doc/docx -> pdf` 依赖 `LibreOffice(soffice)`。
-- 当前 backend Docker 镜像未内置 LibreOffice；容器内对 `doc/docx` 转换会失败。
-- MVP 本地建议先使用 PDF；若要容器内转换，需在 backend 镜像安装 LibreOffice。
+1. `docker compose --env-file .env config` succeeds.
+2. `docker compose --env-file .env up -d --build` succeeds.
+3. Upload works for guest without login (`mp4/pdf`).
+4. Guest A cannot view Guest B files (list/stream/view isolation).
+5. Set `GUEST_TTL_MINUTES=1`, wait 1+ minute, file disappears automatically.
+6. Expired access returns `410`, and disk file is removed.
+7. Upload rate limit and guest quota return `429`.

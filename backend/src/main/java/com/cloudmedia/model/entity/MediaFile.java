@@ -9,11 +9,11 @@ import java.time.LocalDateTime;
 @TableName("media_files")
 public class MediaFile {
 
-    @TableId(type = IdType.AUTO)
-    private Long id;
+    @TableId(type = IdType.INPUT)
+    private String id;
 
-    @TableField("user_id")
-    private Long userId;
+    @TableField("guest_id")
+    private String guestId;
 
     @TableField("media_type")
     private String mediaType;
@@ -32,8 +32,7 @@ public class MediaFile {
     @TableField("mime_type")
     private String mimeType;
 
-    @TableField("storage_rel_path")
-    private String storageRelPath;
+    private String path;
 
     @TableField("derived_pdf_rel_path")
     private String derivedPdfRelPath;
@@ -41,23 +40,25 @@ public class MediaFile {
     @TableField("created_at")
     private LocalDateTime createdAt;
 
-    @TableField("updated_at")
-    private LocalDateTime updatedAt;
+    @TableField("expires_at")
+    private LocalDateTime expiresAt;
 
-    public Long getId() {
+    private String status;
+
+    public String getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
     }
 
-    public Long getUserId() {
-        return userId;
+    public String getGuestId() {
+        return guestId;
     }
 
-    public void setUserId(Long userId) {
-        this.userId = userId;
+    public void setGuestId(String guestId) {
+        this.guestId = guestId;
     }
 
     public String getMediaType() {
@@ -108,12 +109,12 @@ public class MediaFile {
         this.mimeType = mimeType;
     }
 
-    public String getStorageRelPath() {
-        return storageRelPath;
+    public String getPath() {
+        return path;
     }
 
-    public void setStorageRelPath(String storageRelPath) {
-        this.storageRelPath = storageRelPath;
+    public void setPath(String path) {
+        this.path = path;
     }
 
     public String getDerivedPdfRelPath() {
@@ -132,11 +133,19 @@ public class MediaFile {
         this.createdAt = createdAt;
     }
 
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
+    public LocalDateTime getExpiresAt() {
+        return expiresAt;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
+    public void setExpiresAt(LocalDateTime expiresAt) {
+        this.expiresAt = expiresAt;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 }

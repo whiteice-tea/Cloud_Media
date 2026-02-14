@@ -5,14 +5,12 @@ import java.util.Set;
 
 public final class FileTypeUtil {
 
-    private static final Set<String> VIDEO_EXTS = Set.of("mp4", "webm", "ogv", "m4v", "mov");
+    private static final Set<String> VIDEO_EXTS = Set.of("mp4", "m4v");
     private static final Set<String> DOC_EXTS = Set.of("pdf", "doc", "docx");
-    private static final Set<String> VIDEO_MIMES = Set.of(
-            "video/mp4",
-            "video/webm",
-            "video/ogg",
-            "application/ogg",
-            "video/quicktime",
+    private static final Set<String> DOC_MIMES = Set.of(
+            "application/pdf",
+            "application/msword",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
             "application/octet-stream"
     );
 
@@ -40,10 +38,18 @@ public final class FileTypeUtil {
 
     public static boolean isSupportedVideoMime(String mimeType) {
         if (mimeType == null || mimeType.isBlank()) {
-            return true;
+            return false;
         }
         String normalized = mimeType.toLowerCase(Locale.ROOT);
-        return VIDEO_MIMES.contains(normalized);
+        return normalized.startsWith("video/");
+    }
+
+    public static boolean isSupportedDocMime(String mimeType) {
+        if (mimeType == null || mimeType.isBlank()) {
+            return false;
+        }
+        String normalized = mimeType.toLowerCase(Locale.ROOT);
+        return DOC_MIMES.contains(normalized);
     }
 
     public static String guessMimeByExt(String ext) {
@@ -51,9 +57,6 @@ public final class FileTypeUtil {
         return switch (normalized) {
             case "mp4" -> "video/mp4";
             case "m4v" -> "video/mp4";
-            case "webm" -> "video/webm";
-            case "ogv" -> "video/ogg";
-            case "mov" -> "video/quicktime";
             case "pdf" -> "application/pdf";
             case "doc" -> "application/msword";
             case "docx" -> "application/vnd.openxmlformats-officedocument.wordprocessingml.document";

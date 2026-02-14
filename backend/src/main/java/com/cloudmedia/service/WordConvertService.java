@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -24,7 +23,7 @@ import com.cloudmedia.util.PathUtil;
 public class WordConvertService {
 
     private static final Logger log = LoggerFactory.getLogger(WordConvertService.class);
-    private static final ConcurrentHashMap<Long, ReentrantLock> DOC_LOCKS = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<String, ReentrantLock> DOC_LOCKS = new ConcurrentHashMap<>();
 
     private final StorageProperties storageProperties;
     private final MediaFileMapper mediaFileMapper;
@@ -100,7 +99,6 @@ public class WordConvertService {
             String rel = "docs/" + outputName;
             mediaService.updateDerivedPdfPath(mediaFile.getId(), rel);
             mediaFile.setDerivedPdfRelPath(rel);
-            mediaFile.setUpdatedAt(LocalDateTime.now());
             return finalPdfPath;
         } catch (ApiException e) {
             throw e;

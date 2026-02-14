@@ -88,6 +88,8 @@ public class GlobalExceptionHandler {
             case ApiCode.UNAUTHORIZED -> HttpStatus.UNAUTHORIZED;
             case ApiCode.FORBIDDEN -> HttpStatus.FORBIDDEN;
             case ApiCode.NOT_FOUND -> HttpStatus.NOT_FOUND;
+            case ApiCode.GONE -> HttpStatus.GONE;
+            case ApiCode.TOO_MANY_REQUESTS -> HttpStatus.TOO_MANY_REQUESTS;
             case ApiCode.WORD_CONVERT_FAILED -> HttpStatus.INTERNAL_SERVER_ERROR;
             default -> HttpStatus.INTERNAL_SERVER_ERROR;
         };

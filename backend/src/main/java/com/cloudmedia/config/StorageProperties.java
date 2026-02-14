@@ -5,7 +5,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "storage")
 public class StorageProperties {
 
-    private String rootPath = "../storage";
+    private String rootPath;
 
     public String getRootPath() {
         return rootPath;

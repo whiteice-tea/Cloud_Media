@@ -2,19 +2,20 @@ package com.cloudmedia.model.vo;
 
 public class MediaItemVO {
 
-    private Long id;
+    private String id;
     private String mediaType;
     private String originalName;
     private Long sizeBytes;
     private String createdAt;
+    private String expiresAt;
     private String playUrl;
     private String viewUrl;
 
-    public Long getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
     }
 
@@ -48,6 +49,14 @@ public class MediaItemVO {
 
     public void setCreatedAt(String createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public String getExpiresAt() {
+        return expiresAt;
+    }
+
+    public void setExpiresAt(String expiresAt) {
+        this.expiresAt = expiresAt;
     }
 
     public String getPlayUrl() {

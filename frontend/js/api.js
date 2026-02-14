@@ -13,15 +13,38 @@
 function getOrCreateGuestId() {
   const key = "guestId";
   let guestId = localStorage.getItem(key);
-  if (guestId) return guestId;
+  if (isValidGuestId(guestId)) return guestId;
 
   if (window.crypto && typeof window.crypto.randomUUID === "function") {
-    guestId = window.crypto.randomUUID().replaceAll("-", "");
+    guestId = window.crypto.randomUUID();
   } else {
-    guestId = `${Date.now()}_${Math.random().toString(36).slice(2, 14)}`;
+    guestId = fallbackUuidV4();
   }
   localStorage.setItem(key, guestId);
   return guestId;
+}
+
+function isValidGuestId(guestId) {
+  if (!guestId) return false;
+  const uuidV4Like = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  const ulidLike = /^[0-9A-HJKMNP-TV-Z]{26}$/;
+  return uuidV4Like.test(guestId) || ulidLike.test(guestId);
+}
+
+function fallbackUuidV4() {
+  const bytes = new Uint8Array(16);
+  if (window.crypto && typeof window.crypto.getRandomValues === "function") {
+    window.crypto.getRandomValues(bytes);
+  } else {
+    for (let i = 0; i < 16; i += 1) {
+      bytes[i] = Math.floor(Math.random() * 256);
+    }
+  }
+  bytes[6] = (bytes[6] & 0x0f) | 0x40;
+  bytes[8] = (bytes[8] & 0x3f) | 0x80;
+
+  const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
 }
 
 const API_BASE = resolveApiBase();
